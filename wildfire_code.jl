@@ -1,7 +1,7 @@
 using PowerModelsDistribution, Ipopt, PowerModelsAnalytics, PowerModels, Distributions, BSON
 
 # Load the test case.
-main_eng = PowerModels.parse_file("case5_risk_edited.m")
+main_eng = PowerModels.parse_file("case5_risk.m")
 eng = deepcopy(main_eng)
 global keys_of_lines = keys(eng["branch"])
 global keys_of_loads = keys(eng["load"])
@@ -23,15 +23,15 @@ for i in keys_of_lines
 end
 
 # Define the number of samples for each configiration. 
-num_cases = 500                                                                                     
+num_cases = 100                                                                                   
 
 # Begin variation in configurations and loads.
 for c in combinations
     for case_idx in 1:num_cases
-        # Manually varying the state of the switchable lines. Note: Closed switch: 1, Open switch: 0
+        eng = deepcopy(main_eng)
+        # Manually varying the state of the switchable lines. Note: Closed line: 1, Open line: 0
         index = 1
         for i in keys_of_lines
-            display(index)
             state = c[index]
             eng["branch"][i]["br_status"] = state
             push!(all_data["$i"], state)
@@ -43,7 +43,7 @@ for c in combinations
             number_of_loads = count(>=(0), eng["load"][i]["pd"])
             nom_p = eng["load"][i]["pd"]
             nom_q = eng["load"][i]["qd"]
-            uniform_distribution_range = Uniform(0.5, 1.5)
+            uniform_distribution_range = Uniform(0.95, 1.05)
             scale = rand(uniform_distribution_range)
             if number_of_loads == 3
                 eng["load"][i]["pd"] = nom_p * scale
@@ -78,7 +78,6 @@ for c in combinations
         if sum_gen > sum_load 
             S_loss = []
             for i in keys_of_lines
-                # display(result["solution"]["branch"])
                 if haskey(result["solution"]["branch"], "$i")
                     append!(S_loss, result["solution"]["branch"][i]["pt"] + result["solution"]["branch"][i]["pf"])
                 else
@@ -90,12 +89,12 @@ for c in combinations
         else
             load_shed = abs(sum_load - sum_gen)
         end
-        push!(all_data["load_shed"], load_shed)
+        push!(all_data["load_shed"], load_shed/sum_load)
     end
 end
 
 # Save the dictionary to a BSON file.
-bson("wildfire_training_data.bson", all_data)
+bson("wildfire_training_data_$num_cases.bson", all_data)
 
 for i in keys(all_data)
     @assert (length(all_data["$i"]) == num_cases * (2^6))||
