@@ -6,13 +6,13 @@ using BSON
 using PowerModels
 
 nn_model = BSON.load("wildfire_trained_model.bson")
-eng = PowerModels.parse_file("case5_risk_edited.m")
+eng = PowerModels.parse_file("case5_risk.m")
 
 pd = []
 qd = []
 for i in keys(eng["load"])
-        push!(pd, eng["load"][i]["pd"])
-        push!(qd, eng["load"][i]["qd"])
+    push!(pd, eng["load"][i]["pd"])
+    push!(qd, eng["load"][i]["qd"])
 end
 nominal_values = append!(pd, qd)
 
@@ -58,6 +58,8 @@ input_vector = append!(nominal_values, line_status)
 @constraint(model, x4 == W_3 * (x3) + B_3)
 @constraint(model, x5 == W_4 * (x4) + B_4)
 
+@constraint( model, x5 <= 0.2 * D_p)
+
 for i in [1:length(nn_model[:model][1].bias)]
     @constraint(model, 0 <= x2[i])
 end
@@ -66,12 +68,16 @@ for i in [1:length(nn_model[:model][2].bias)]
 end
 
 #---Objective function
-@objective(model, 
-    Min, 
-    (alpha * x5[1]) / D_p 
-    + ((1 - alpha)/ total_risk) * sum(risk[i] * line_status[i] for i in 1:6)
-)
+# @objective(model, 
+#     Min, 
+#     (alpha * x5[1]) / D_p 
+#     + ((1 - alpha)/ total_risk) * sum(risk[i] * line_status[i] for i in 1:6)
+# )
 
+#---Objective function
+@objective(model, 
+    Min, sum(risk[i] * line_status[i] for i in 1:6)
+)
 #--- Solve the model
 optimize!(model)
 
