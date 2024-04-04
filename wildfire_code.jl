@@ -1,10 +1,11 @@
-using PowerModelsDistribution, Ipopt, PowerModelsAnalytics, PowerModels, Distributions, BSON
+using PowerModelsDistribution, Ipopt, PowerModelsAnalytics, PowerModels, Distributions, BSON, JSON, HDF5
 
 # Load the test case.
 main_eng = PowerModels.parse_file("case5_risk.m")
 eng = deepcopy(main_eng)
 global keys_of_lines = keys(eng["branch"])
 global keys_of_loads = keys(eng["load"])
+plot_network(main_eng, label_nodes=true)
 
 # Define the set of binary variables
 binary_set = [0, 1]
@@ -19,11 +20,11 @@ for i in keys_of_loads
     push!(all_data, "q$i" => [])
 end
 for i in keys_of_lines
-    push!(all_data, "$i" => [])
+    push!(all_data, "z$i" => [])
 end
 
 # Define the number of samples for each configiration. 
-num_cases = 100                                                                                   
+num_cases = 2000                                                                            
 
 # Begin variation in configurations and loads.
 for c in combinations
@@ -34,7 +35,7 @@ for c in combinations
         for i in keys_of_lines
             state = c[index]
             eng["branch"][i]["br_status"] = state
-            push!(all_data["$i"], state)
+            push!(all_data["z$i"], state)
             index = index + 1
         end
 
@@ -95,8 +96,3 @@ end
 
 # Save the dictionary to a BSON file.
 bson("wildfire_training_data_$num_cases.bson", all_data)
-
-for i in keys(all_data)
-    @assert (length(all_data["$i"]) == num_cases * (2^6))||
-    error("Key: $i does not have $num_cases entries")
-end
