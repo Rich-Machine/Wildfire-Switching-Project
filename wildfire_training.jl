@@ -5,10 +5,21 @@ using Random
 using LinearAlgebra
 using Flux: mse, ADAM
 
-training_data = BSON.load("wildfire_training_data_1.bson")
+training_data = BSON.load("wildfire_training_data_100.bson")
+training_data = sort(training_data)
+
 global keys_of_dictionary = keys(training_data)
 global input_data = []
 global target_data = []
+
+# # Iterate through the indices in reverse order to avoid index shifting issues
+# for i in reverse(1:length(training_data["load_shed"]))
+#     if training_data["load_shed"][i] <= 0.0001
+#         for key in keys(training_data)
+#             deleteat!(training_data[key], i)
+#         end
+#     end
+# end
 
 # Extract input and target data from the dictionary
 for i in keys_of_dictionary
@@ -17,9 +28,21 @@ for i in keys_of_dictionary
     end
 end
 
+# Define a tolerance level
+tolerance = 1e-1
+
 input_data = hcat(input_data...)
 # target_data = hcat(target_data...)
 target_data = hcat(training_data["load_shed"])
+
+# Round all numbers approximately equal to zero to 0
+for i in 1:size(target_data, 1)
+    for j in 1:size(target_data, 2)
+        if abs(target_data[i, j]) < tolerance  # Check if the element is close to zero
+            target_data[i, j] = 0.0
+        end
+    end
+end
 
 function train_test_split(data, test_ratio=0.2, seed=42)
     Random.seed!(seed)  # Set a seed for reproducibility
@@ -29,27 +52,24 @@ function train_test_split(data, test_ratio=0.2, seed=42)
 end
 
 # Split the data into training nd testing datasets
-x_train, x_test = train_test_split(input_data, 0.2, 42)
-y_train, y_test = train_test_split(target_data, 0.2, 42)
+x_train, x_test = train_test_split(input_data, 0.1, 42)
+y_train, y_test = train_test_split(target_data, 0.1, 42)
 x_train = x_train'
 y_train = y_train'
 x_test = x_test'
 y_test = y_test'
-fd
+
 # Define the model parameters
 input_layer_size = size(x_train)[1]
 output_layer_size = size(y_train)[1]
 model = Chain(
-        Dense(input_layer_size, 560, relu),
-        Dense(560, 160, relu),
-        Dense(160, 30, relu),
-        Dense(30, output_layer_size)
+        Dense(input_layer_size, 100, relu),
+        Dense(100, output_layer_size)
 )
 
-
 # Hyperparameters
-epochs = 1000
-learning_rate = 0.001
+epochs = 5000
+learning_rate = 0.0001
 patience = 20  # Number of epochs to wait before early stopping if no improvement
 
 # Train the neural network
@@ -80,7 +100,7 @@ end
 
 predictions = model(x_test)
 errors = predictions - y_test
-relative_error = norm(errors)/norm(y_test) * 100
+relative_error = (norm(errors)/norm(y_test)) * 100
 println("Relative error of prediction: $relative_error")
 
 # Function to save the trained model to a BSON file
