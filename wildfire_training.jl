@@ -7,7 +7,6 @@ using Flux: mse, ADAM
 
 training_data = BSON.load("wildfire_training_data_100.bson")
 training_data = sort(training_data)
-
 global keys_of_dictionary = keys(training_data)
 global input_data = []
 global target_data = []
@@ -52,8 +51,8 @@ function train_test_split(data, test_ratio=0.2, seed=42)
 end
 
 # Split the data into training nd testing datasets
-x_train, x_test = train_test_split(input_data, 0.1, 42)
-y_train, y_test = train_test_split(target_data, 0.1, 42)
+x_train, x_test = train_test_split(input_data, 0.2, 42)
+y_train, y_test = train_test_split(target_data, 0.2 , 42)
 x_train = x_train'
 y_train = y_train'
 x_test = x_test'
@@ -69,13 +68,13 @@ model = Chain(
 
 # Hyperparameters
 epochs = 5000
-learning_rate = 0.0001
+learning_rate = 0.001
 patience = 20  # Number of epochs to wait before early stopping if no improvement
 
 # Train the neural network
 loss(x, y) = Flux.mae(model(x), y)
 opt = ADAM(learning_rate)
-data = [(x_test, y_test)]
+data = [(x_train, y_train)]
 
 global best_loss = Inf
 global wait = 0
@@ -107,7 +106,8 @@ println("Relative error of prediction: $relative_error")
 function save_model_to_bson(filename, model)
     BSON.@save filename model=model
 end
+
 # Save the trained model to a BSON file
-model_filename = "wildfire_trained_model.bson"
+model_filename = "wildfire_trained_model_$relative_error.bson"
 save_model_to_bson(model_filename, model)
 println("Training and saving completed.")
