@@ -3,19 +3,26 @@ using HiGHS
 using Gurobi
 using Flux
 using BSON
+using Plots
 using PowerModels
 
-nn_model = BSON.load("wildfire_trained_model.bson")
+nn_model = BSON.load("wildfire_trained_model_25.0051777674087.bson")
 eng = PowerModels.parse_file("case5_risk.m")
 
 objective=[]
 load_shed_units = []
 wildfire_risk = []
+line_1 = []
+line_2 = []
+line_3 = []
+line_4 = []
+line_5 = []
+line_6 = []
 
 # Define alpha parameter
-alpha = (0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,  0.7, 0.8, 0.9, 1)
+alpha = (0.01, 0.02, 0.03, 0.04, 0.05, 0.06,  0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16,  0.17, 0.18, 0.19, 0.2)
 for j in alpha
-
+    print("This is $j\n \n")
     pd = []
     qd = []
     for i in 1:5
@@ -23,9 +30,10 @@ for j in alpha
         push!(qd, eng["load"]["$i"]["qd"])
     end
     nominal_values = append!(pd, qd)
+
     # Define Big M vector
-    u = fill(3.025, 100)
-    l = fill(-1.865, 100)
+    u = fill(3.0186, 100)
+    l = fill(-1.8646, 100)
 
     loads = []
     for i in keys(eng["load"])
@@ -34,8 +42,8 @@ for j in alpha
     D_p = sum(loads)
 
     risk = []
-    for i in keys(eng["branch"])
-        push!(risk, eng["branch"][i]["power_risk"])
+    for i in 1:6
+        push!(risk, eng["branch"]["$i"]["power_risk"])
     end
     total_risk = sum(risk)
 
@@ -57,7 +65,7 @@ for j in alpha
     @constraint(model, x3 == W_2 * (x2) + B_2)
     @expression(model, without_bias, W_1 * input_vector)
 
-    ##ReLu constraints
+    ## ReLu constraints
     for i in 1:100
         @constraint(model, x2[i] >= 0)
     end
@@ -71,29 +79,44 @@ for j in alpha
         @constraint(model, x2[i] <= without_bias[i] + B_1[i] - l[i] * (1 - z2[i]))
     end
     @constraint(model, x3 >= 0)
-    # @constraint( model, x3[1] <= 0.2 * D_p)
+    @constraint( model, x3[1] <= j)
+
+    display(j)
+
+    # # ---Objective function
+    # @objective(model, 
+    #     Min, 
+    #     (j * x3[1])
+    #     + 
+    #     ((1 - j) /total_risk)* sum(risk[i] * line_status[i] for i in 1:6)
+    # )
+
+    # @objective(model, 
+    # Max, 
+    # (j * x3[1])/D_p 
+    # + ((1 - j)/ total_risk) * sum(risk[i] * line_status[i] for i in 1:6)
+    # )
 
 
-    # ---Objective function
-    @objective(model, 
-        Min, 
-        (j * x3[1]) 
-        + ((1 - j)/ total_risk) * sum(risk[i] * line_status[i] for i in 1:6)
+    #---Objective function
+    @objective(model, Min, sum(risk[i] * line_status[i] for i in 1:6)
     )
+
     #--- Solve the model
     optimize!(model)    
 
     push!(objective, JuMP.objective_value(model))
-    push!(objective, JuMP.value.(x3))
-    push!(objective, JuMP.objective_value(model))
+    push!(load_shed_units, JuMP.value.(x3))
+    line_risk = sum(risk[i] * JuMP.value.(line_status)[i] for i in 1:6)
+    push!(wildfire_risk, line_risk)
+    push!(line_1, JuMP.value.(line_status)[1])
+    push!(line_2, JuMP.value.(line_status)[2])
+    push!(line_3, JuMP.value.(line_status)[3])
+    push!(line_4, JuMP.value.(line_status)[4])
+    push!(line_5, JuMP.value.(line_status)[5])
+    push!(line_6, JuMP.value.(line_status)[6])
 
-    #---Objective function
-    # @objective(model, 
-    #     Min, sum(risk[i] * line_status[i] for i in 1:6)
-    # )
 
-    latex_formulation(model)
-    # solution_summary(model, verbose=true)
 
     # Check the status of the optimization
     if termination_status(model) == MOI.OPTIMAL
@@ -106,5 +129,17 @@ for j in alpha
         println("Optimization problem failed to find an optimal solution.")
     end
 end 
-#--- Figure out how to print JuMP results
-solution_summary(model)
+
+alpha = range(0.01, 0.2, length=20)
+plot(alpha, objective,title = "Variation of Ignition Risk with Total Load Shed", xlabel = "% of load shed", ylabel = "Total Risk of Wildfire Ignition", label="Total Risk")
+plot(alpha, line_1, title = "Variation of line status with Load Shed", xlabel = "% of load shed", ylabel = "Line status (1=closed & 0=open)", label="Line 1")
+plot!(alpha, line_2, label="Line 2")
+plot!(alpha, line_3, label="Line 3")
+plot!(alpha, line_4, label="Line 4")
+plot!(alpha, line_5, label="Line 5")
+plot!(alpha, line_6, label="Line 6")
+
+load_shed_units_combined = vcat(load_shed_units...)
+plot(alpha, load_shed_units_combined, title = "Variation of Ignition Risk with Total Load Shed", xlabel = "alpha", ylabel = "% of load shed", label="Total Risk")
+plot(load_shed_units_combined, objective, title = "Variation of Ignition Risk with Total Load Shed", xlabel = "% of load shed", ylabel = "Total Wildfire risk", label="Total Risk")
+
