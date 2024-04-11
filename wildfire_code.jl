@@ -24,7 +24,7 @@ for i in keys_of_lines
 end
 
 # Define the number of samples for each configiration. 
-num_cases = 2000                                                                            
+num_cases = 100                                                                           
 
 # Begin variation in configurations and loads.
 for c in combinations
@@ -90,9 +90,9 @@ for c in combinations
         else
             load_shed = abs(sum_load - sum_gen)
         end
-        push!(all_data["load_shed"], load_shed/sum_load)
+        push!(all_data["load_shed"], load_shed)
     end
 end
 
 # Save the dictionary to a BSON file.
-bson("wildfire_training_data_$num_cases.bson", all_data)
+bson("wildfire_training_data_unnormalized_$num_cases.bson", all_data)
