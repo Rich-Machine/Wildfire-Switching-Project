@@ -28,7 +28,7 @@ for i in keys_of_lines
 end
 
 # Define the number of samples for each configiration. 
-num_cases = 1                                    
+num_cases = 100                                    
 
 # Begin variation in configurations and loads.
 for c in combinations
