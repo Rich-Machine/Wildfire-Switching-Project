@@ -1,8 +1,12 @@
 using PowerModelsDistribution, Ipopt, PowerModelsAnalytics, PowerModels, Distributions, BSON, JSON, HDF5
 
+network_type = "base_case"
+# network_type = "sole_gen"
+# network_type = "high_risk"
+
 # Load the test case.
-main_eng = PowerModels.parse_file("case5_risk.m")
-eng = deepcopy(main_eng)
+main_eng = PowerModels.parse_file("case5_risk_$network_type.m")
+
 global keys_of_lines = keys(eng["branch"])
 global keys_of_loads = keys(eng["load"])
 plot_network(main_eng, label_nodes=true)
@@ -24,7 +28,7 @@ for i in keys_of_lines
 end
 
 # Define the number of samples for each configiration. 
-num_cases = 100                                                                           
+num_cases = 1                                    
 
 # Begin variation in configurations and loads.
 for c in combinations
@@ -95,4 +99,5 @@ for c in combinations
 end
 
 # Save the dictionary to a BSON file.
-bson("wildfire_training_data_unnormalized_$num_cases.bson", all_data)
+all_data = sort(all_data)
+bson("wildfire_training_data_$network_type.bson", all_data)
