@@ -6,8 +6,13 @@ using BSON
 using Plots
 using PowerModels
 
-nn_model = BSON.load("wildfire_trained_model_25.0051777674087.bson")
-eng = PowerModels.parse_file("case5_risk.m")
+
+network_type = "base_case"
+# network_type = "sole_gen"
+# network_type = "high_risk"
+
+nn_model = BSON.load("wildfire_trained_model_$network_type.bson")
+eng = PowerModels.parse_file("case5_risk_$network_type.m")
 
 objective=[]
 load_shed_units = []
@@ -79,34 +84,27 @@ for j in alpha
         @constraint(model, x2[i] <= without_bias[i] + B_1[i] - l[i] * (1 - z2[i]))
     end
     @constraint(model, x3 >= 0)
-    @constraint( model, x3[1] <= j)
+    @constraint( model, x3[1] <= j*D_p)
 
     display(j)
 
     # # ---Objective function
     # @objective(model, 
     #     Min, 
-    #     (j * x3[1])
+    #     (j * x3[1])/D_p
     #     + 
     #     ((1 - j) /total_risk)* sum(risk[i] * line_status[i] for i in 1:6)
     # )
 
-    # @objective(model, 
-    # Max, 
-    # (j * x3[1])/D_p 
-    # + ((1 - j)/ total_risk) * sum(risk[i] * line_status[i] for i in 1:6)
-    # )
-
-
     #---Objective function
-    @objective(model, Min, sum(risk[i] * line_status[i] for i in 1:6)
+    @objective(model, Min, sum(risk[i] * line_status[i] for i in 1:6)/total_risk
     )
 
     #--- Solve the model
     optimize!(model)    
 
     push!(objective, JuMP.objective_value(model))
-    push!(load_shed_units, JuMP.value.(x3))
+    push!(load_shed_units, JuMP.value.(x3)/D_p)
     line_risk = sum(risk[i] * JuMP.value.(line_status)[i] for i in 1:6)
     push!(wildfire_risk, line_risk)
     push!(line_1, JuMP.value.(line_status)[1])
@@ -115,8 +113,6 @@ for j in alpha
     push!(line_4, JuMP.value.(line_status)[4])
     push!(line_5, JuMP.value.(line_status)[5])
     push!(line_6, JuMP.value.(line_status)[6])
-
-
 
     # Check the status of the optimization
     if termination_status(model) == MOI.OPTIMAL
@@ -131,15 +127,13 @@ for j in alpha
 end 
 
 alpha = range(0.01, 0.2, length=20)
-plot(alpha, objective,title = "Variation of Ignition Risk with Total Load Shed", xlabel = "% of load shed", ylabel = "Total Risk of Wildfire Ignition", label="Total Risk")
+
+load_shed_units_combined = vcat(load_shed_units...)
+plot(load_shed_units_combined, objective, title = "Variation of Ignition Risk with Total Load Shed", xlabel = "% of load shed", ylabel = "Total Wildfire risk", label="Total Risk")
+
 plot(alpha, line_1, title = "Variation of line status with Load Shed", xlabel = "% of load shed", ylabel = "Line status (1=closed & 0=open)", label="Line 1")
 plot!(alpha, line_2, label="Line 2")
 plot!(alpha, line_3, label="Line 3")
 plot!(alpha, line_4, label="Line 4")
 plot!(alpha, line_5, label="Line 5")
 plot!(alpha, line_6, label="Line 6")
-
-load_shed_units_combined = vcat(load_shed_units...)
-plot(alpha, load_shed_units_combined, title = "Variation of Ignition Risk with Total Load Shed", xlabel = "alpha", ylabel = "% of load shed", label="Total Risk")
-plot(load_shed_units_combined, objective, title = "Variation of Ignition Risk with Total Load Shed", xlabel = "% of load shed", ylabel = "Total Wildfire risk", label="Total Risk")
-
