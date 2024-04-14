@@ -5,20 +5,15 @@ using Random
 using LinearAlgebra
 using Flux: mse, ADAM
 
-training_data = BSON.load("wildfire_training_data_100.bson")
-training_data = sort(training_data)
+network_type = "base_case"
+# network_type = "sole_gen"
+# network_type = "high_risk"
+
+## Load the training data
+training_data = BSON.load("wildfire_training_data_$network_type.bson")
 global keys_of_dictionary = keys(training_data)
 global input_data = []
 global target_data = []
-
-# # Iterate through the indices in reverse order to avoid index shifting issues
-# for i in reverse(1:length(training_data["load_shed"]))
-#     if training_data["load_shed"][i] <= 0.0001
-#         for key in keys(training_data)
-#             deleteat!(training_data[key], i)
-#         end
-#     end
-# end
 
 # Extract input and target data from the dictionary
 for i in keys_of_dictionary
@@ -31,7 +26,6 @@ end
 tolerance = 1e-1
 
 input_data = hcat(input_data...)
-# target_data = hcat(target_data...)
 target_data = hcat(training_data["load_shed"])
 
 # Round all numbers approximately equal to zero to 0
@@ -67,7 +61,7 @@ model = Chain(
 )
 
 # Hyperparameters
-epochs = 5000
+epochs = 2000
 learning_rate = 0.001
 patience = 20  # Number of epochs to wait before early stopping if no improvement
 
@@ -108,6 +102,6 @@ function save_model_to_bson(filename, model)
 end
 
 # Save the trained model to a BSON file
-model_filename = "wildfire_trained_model_$relative_error.bson"
+model_filename = "wildfire_trained_model_$network_type.bson"
 save_model_to_bson(model_filename, model)
 println("Training and saving completed.")
