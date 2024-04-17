@@ -1,9 +1,9 @@
 using PowerPlots
 using PowerModels
 
-network_type = "base_case"
+# network_type = "base_case"
 # network_type = "sole_gen"
-# network_type = "high_risk"
+network_type = "high_risk"
 
 eng = PowerModels.parse_file("case5_risk_$network_type.m")
 

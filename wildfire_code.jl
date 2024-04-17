@@ -1,14 +1,14 @@
-using PowerModelsDistribution, Ipopt, PowerModelsAnalytics, PowerModels, Distributions, BSON, JSON, HDF5
+using Ipopt, PowerModelsAnalytics, PowerModels, Distributions, BSON
 
-network_type = "base_case"
+# network_type = "base_case"
 # network_type = "sole_gen"
-# network_type = "high_risk"
+network_type = "high_risk"
 
 # Load the test case.
 main_eng = PowerModels.parse_file("case5_risk_$network_type.m")
 
-global keys_of_lines = keys(eng["branch"])
-global keys_of_loads = keys(eng["load"])
+global keys_of_lines = keys(main_eng["branch"])
+global keys_of_loads = keys(main_eng["load"])
 plot_network(main_eng, label_nodes=true)
 
 # Define the set of binary variables

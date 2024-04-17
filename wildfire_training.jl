@@ -5,9 +5,9 @@ using Random
 using LinearAlgebra
 using Flux: mse, ADAM
 
-network_type = "base_case"
+# network_type = "base_case"
 # network_type = "sole_gen"
-# network_type = "high_risk"
+network_type = "high_risk"
 
 ## Load the training data
 training_data = BSON.load("wildfire_training_data_$network_type.bson")
@@ -72,11 +72,15 @@ data = [(x_train, y_train)]
 
 global best_loss = Inf
 global wait = 0
+Epoch = []
+Loss = []
 
 for epoch in 1:epochs
     Flux.train!(loss, Flux.params(model), data, opt)
     val_loss = loss(x_test, y_test)
     println("Epoch $epoch, Loss: $val_loss")
+    push!(Epoch, epoch)
+    push!(Loss, val_loss)
 
     # Early stopping
     if epoch == 1 || val_loss < best_loss
@@ -105,3 +109,8 @@ end
 model_filename = "wildfire_trained_model_$network_type.bson"
 save_model_to_bson(model_filename, model)
 println("Training and saving completed.")
+
+epoch_combined = vcat(Epoch...)
+loss_combined = vcat(Loss...)
+plot(epoch_combined, loss_combined, title = "Variation of Validation Loss with Epoch", xlabel = "Epoch number", ylabel = "Mean Absolute Error", label="Relative Error = $relative_error")
+
