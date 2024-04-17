@@ -25,8 +25,11 @@ line_5 = []
 line_6 = []
 
 # Define alpha parameter
-# alpha = (0.01, 0.02, 0.03, 0.04, 0.05, 0.06,  0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16,  0.17, 0.18, 0.19, 0.2)
-alpha = (0.1, 0.2, 0.3, 0.4, 0.5, 0.6,  0.7, 0.8, 0.9)
+alpha = (0.01, 0.02, 0.03, 0.04, 0.05, 0.06,  0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16,  0.17, 0.18, 0.19, 0.2)
+if network_type == "sole_gen"
+    alpha = (0.1, 0.2, 0.3, 0.4, 0.5, 0.6,  0.7, 0.8, 0.9)
+end
+
 for j in alpha
     print("This is $j\n \n")
     pd = []
@@ -38,8 +41,16 @@ for j in alpha
     nominal_values = append!(pd, qd)
 
     # Define Big M vector
-    u = fill(3.0186, 100)
-    l = fill(-1.8646, 100)
+    if network_type == "base_case"
+        u = fill(2.9504, 100)
+        l = fill(-1.8339, 100)
+    elseif network_type == "sole_gen"
+        u = fill(2.7504, 100)
+        l = fill(-1.863, 100)
+    elseif network_type == "high_risk"
+        u = fill(2.974, 100)
+        l = fill(-1.81, 100)
+    end
 
     loads = []
     for i in keys(eng["load"])
@@ -107,7 +118,7 @@ for j in alpha
     push!(objective, JuMP.objective_value(model))
     push!(load_shed_units, JuMP.value.(x3)/D_p)
     line_risk = sum(risk[i] * JuMP.value.(line_status)[i] for i in 1:6)
-    push!(wildfire_risk, line_risk)
+    push!(wildfire_risk, line_risk/total_risk)
     push!(line_1, JuMP.value.(line_status)[1])
     push!(line_2, JuMP.value.(line_status)[2])
     push!(line_3, JuMP.value.(line_status)[3])
@@ -127,10 +138,13 @@ for j in alpha
     end
 end 
 
-alpha = range(0.1, 1, length=9)
+alpha = range(0.01, 0.2, length=20)
+if network_type == "sole_gen"
+    alpha = range(0.1, 1, length=9)
+end
 
 load_shed_units_combined = vcat(load_shed_units...)
-plot(load_shed_units_combined, objective, title = "Variation of Ignition Risk with Total Load Shed", xlabel = "% of load shed", ylabel = "Total Wildfire risk", label="Total Risk")
+plot(load_shed_units_combined, wildfire_risk, title = "Total Risk VS Total Load Shed for $network_type", xlabel = "% of load shed", ylabel = "Total Wildfire risk", label="Total Risk")
 
 plot(alpha, line_1, title = "Variation of line status with Load Shed", xlabel = "% of load shed", ylabel = "Line status (1=closed & 0=open)", label="Line 1")
 plot!(alpha, line_2, label="Line 2")

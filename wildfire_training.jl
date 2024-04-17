@@ -5,9 +5,9 @@ using Random
 using LinearAlgebra
 using Flux: mse, ADAM
 
-# network_type = "base_case"
+network_type = "base_case"
 # network_type = "sole_gen"
-network_type = "high_risk"
+# network_type = "high_risk"
 
 ## Load the training data
 training_data = BSON.load("wildfire_training_data_$network_type.bson")
@@ -51,7 +51,7 @@ x_train = x_train'
 y_train = y_train'
 x_test = x_test'
 y_test = y_test'
-
+sss
 # Define the model parameters
 input_layer_size = size(x_train)[1]
 output_layer_size = size(y_train)[1]
