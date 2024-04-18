@@ -5,11 +5,13 @@ using Flux
 using BSON
 using Plots
 using PowerModels
+using HDF5
+using JLD2
 
 
 # network_type = "base_case"
-# network_type = "sole_gen"
-network_type = "high_risk"
+ network_type = "sole_gen"
+#network_type = "high_risk"
 
 nn_model = BSON.load("wildfire_trained_model_$network_type.bson")
 eng = PowerModels.parse_file("case5_risk_$network_type.m")
@@ -152,3 +154,8 @@ plot!(alpha, line_3, label="Line 3")
 plot!(alpha, line_4, label="Line 4")
 plot!(alpha, line_5, label="Line 5")
 plot!(alpha, line_6, label="Line 6")
+
+#create a dictionary to store the results
+results = Dict("objective" => objective, "load_shed_units" => load_shed_units, "wildfire_risk" => wildfire_risk, "line_1" => line_1, "line_2" => line_2, "line_3" => line_3, "line_4" => line_4, "line_5" => line_5, "line_6" => line_6, "alpha" => alpha)
+#save the results 
+save("nn_opt_results_$network_type.jld2", "nn_opt_results_$network_type", results)
