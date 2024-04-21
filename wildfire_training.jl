@@ -5,12 +5,13 @@ using Random
 using LinearAlgebra
 using Flux: mse, ADAM
 
-network_type = "base_case"
+network_type = "edited"
+#network_type = "base_case"
 # network_type = "sole_gen"
 # network_type = "high_risk"
 
 ## Load the training data
-training_data = BSON.load("wildfire_training_data_$network_type.bson")
+training_data = BSON.load("wildfire_training_data_2000.bson")
 global keys_of_dictionary = keys(training_data)
 global input_data = []
 global target_data = []
@@ -51,7 +52,7 @@ x_train = x_train'
 y_train = y_train'
 x_test = x_test'
 y_test = y_test'
-sss
+#sss
 # Define the model parameters
 input_layer_size = size(x_train)[1]
 output_layer_size = size(y_train)[1]

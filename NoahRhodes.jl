@@ -39,11 +39,17 @@ for network_type in ["base_case", "high_risk", "sole_gen"]
         end
         push!(wildfire_risk, risk/tot_risk)
     end
+    #make a matrix to store the load shed and wildfire risk for each case into a single matrix
     
+    #save the matrix to a file
+
+
+
     plot(total_load_shed, wildfire_risk, label="Total Load Shed  $network_type", ylabel="Wildfire Risk", xlabel="Total Load Shed", title="Total Load Shed vs Wildfire")
     savefig("wildfire_ops_tests/total_load_shed_vs_wildfire_risk_$network_type.png")
-    plot(alpha,total_load_shed, label="Total Load Shed $network_type", xlabel="Alpha", ylabel="Total Load Shed", title="Total Load Shed vs Alpha")
-    savefig("wildfire_ops_tests/total_load_shed_vs_alpha_$network_type.png")
-    plot(alpha, wildfire_risk, label="Wildfire Risk $network_type", xlabel="Alpha", ylabel="Wildfire Risk", title="Wildfire Risk vs Alpha")
-    savefig("wildfire_ops_tests/wildfire_risk_vs_alpha_$network_type.png")
+   
+    # plot(alpha,total_load_shed, label="Total Load Shed $network_type", xlabel="Alpha", ylabel="Total Load Shed", title="Total Load Shed vs Alpha")
+    # savefig("wildfire_ops_tests/total_load_shed_vs_alpha_$network_type.png")
+    # plot(alpha, wildfire_risk, label="Wildfire Risk $network_type", xlabel="Alpha", ylabel="Wildfire Risk", title="Wildfire Risk vs Alpha")
+    # savefig("wildfire_ops_tests/wildfire_risk_vs_alpha_$network_type.png")
 end
