@@ -5,13 +5,14 @@ using Random
 using LinearAlgebra
 using Flux: mse, ADAM
 
-network_type = "edited"
+network_type = "RTS_GMLC_risk.m"
+#network_type = "edited"
 #network_type = "base_case"
 # network_type = "sole_gen"
 # network_type = "high_risk"
 
 ## Load the training data
-training_data = BSON.load("wildfire_training_data_2000.bson")
+training_data = BSON.load("wildfire_training_data_rts_gmlc.bson")
 global keys_of_dictionary = keys(training_data)
 global input_data = []
 global target_data = []
