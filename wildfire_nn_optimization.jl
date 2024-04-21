@@ -147,12 +147,22 @@ end
 load_shed_units_combined = vcat(load_shed_units...)
 plot(load_shed_units_combined, wildfire_risk, title = "Total Risk VS Total Load Shed for $network_type", xlabel = "% of load shed", ylabel = "Total Wildfire risk", label="Total Risk")
 
-plot(alpha, line_1, title = "Variation of line status with Load Shed", xlabel = "% of load shed", ylabel = "Line status (1=closed & 0=open)", label="Line 1")
-plot!(alpha, line_2, label="Line 2")
-plot!(alpha, line_3, label="Line 3")
-plot!(alpha, line_4, label="Line 4")
-plot!(alpha, line_5, label="Line 5")
-plot!(alpha, line_6, label="Line 6")
+## Plotting the heat wave for the line statuses
+# Define the lines
+lines = ["Line 1", "Line 2", "Line 3", "Line 4", "Line 5", "Line 6"]
+
+# Assuming line_1 to line_6 are defined as arrays
+line_matrix = hcat(line_1, line_2, line_3, line_4, line_5, line_6)
+line_matrix = line_matrix'
+
+# Generate x-axis labels
+xs = ["Step $i" for i in 1:20]
+
+# Define a custom colormap for 0 and 1
+custom_colors = Dict(0 => "blue", 1 => "red")
+
+# Create the heatmap with custom colorscale
+heatmap(xs, lines, line_matrix, aspect_ratio = 2, colorscale=custom_colors)
 
 #create a dictionary to store the results
 results = Dict("objective" => objective, "load_shed_units" => load_shed_units, "wildfire_risk" => wildfire_risk, "line_1" => line_1, "line_2" => line_2, "line_3" => line_3, "line_4" => line_4, "line_5" => line_5, "line_6" => line_6, "alpha" => alpha)
