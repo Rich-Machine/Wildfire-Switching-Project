@@ -27,7 +27,7 @@ using Plots
 # Load System Data
 # ----------------
 network_list = ["base_case" "sole_gen" "high_risk"]
-network = network_list[3]
+
 
 function dcopf_wildfire_switching(network, alpha)
    
@@ -274,18 +274,27 @@ total_gen_vec = []
 risk_percent_vec = []
 line_status_vec = []
 
-#alpha = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06,  0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16,  0.17, 0.18, 0.19, 0.2]
-#if network == "sole_gen"
-    alpha = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6,  0.7, 0.8, 0.9]
-#end
 
-for alpha in alpha
-    cost, risk_percentage, ls, total_gen, D_p, line_status, risk = dcopf_wildfire_switching(network, alpha)
-    push!(ls_vec, ls)
-    push!(total_gen_vec, total_gen)
-    push!(risk_percent_vec, risk_percentage)
-    push!(line_status_vec, line_status)
+network_ls_percent_vec = []
+net_list = ["base_case" "high_risk"]
+for i = 1:length(net_list)
+    network = net_list[i]
+    alpha = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06,  0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16,  0.17, 0.18, 0.19, 0.2]
+    #if network == "sole_gen"
+     #   alpha = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6,  0.7, 0.8, 0.9]
+    #end
+    for alpha in alpha
+        cost, risk_percentage, ls, total_gen, D_p, line_status, risk = dcopf_wildfire_switching(network, alpha)
+        push!(ls_vec, ls)
+        push!(total_gen_vec, total_gen)
+        push!(risk_percent_vec, risk_percentage)
+        push!(line_status_vec, line_status)
+    end
+
+    D_p = 14
+
+    hcat(network_ls_percent_vec,ls_vec/D_p)
 end
-D_p = 14
-plot(ls_vec,risk_percent_vec, label="DCOPF", ylabel="Wildfire Risk", xlabel="% Load Shed", title="Wildfire Risk vs Load Shed for $network", legend=:topright)
-savefig("conventional_opf_tests/dc_opf_risk_vs_load_shed_$network.png")
+
+    plot([network_ls_percent_vec[1],network_ls_percent_vec[2]],risk_percent_vec, label=["base_case" "high_risk"], ylabel="Wildfire Risk", xlabel="% Load Shed", title="Wildfire Risk vs Load Shed", legend=:topright)
+    savefig("conventional_opf_tests/dc_opf_risk_vs_load_shed_all_networks.png")

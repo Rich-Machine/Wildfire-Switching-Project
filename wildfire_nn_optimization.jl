@@ -8,7 +8,6 @@ using PowerModels
 using HDF5
 using JLD2
 
-
 # network_type = "base_case"
  network_type = "sole_gen"
 #network_type = "high_risk"

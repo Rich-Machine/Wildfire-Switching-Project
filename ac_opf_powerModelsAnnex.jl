@@ -233,7 +233,7 @@ for (i,branch) in ref[:branch]
 
     # Apparent power limit, from side and to side
     @constraint(Lower(model), p_fr^2 + q_fr^2 <= branch["rate_a"]^2)
-    @constraint(Lower(model), p_to^2 + q_to^2 <= branch["rate_a"]^2)
+    @constraint(Lower(model), p_to^2 + q_to^2 == branch["rate_a"]^2)
 end
 
 # HVDC line constraints
