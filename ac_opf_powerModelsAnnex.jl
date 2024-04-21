@@ -77,10 +77,11 @@ ref = PowerModels.build_ref(data)[:it][:pm][:nw][0]
 ##############################################################################################################
 # AW. Using BilevelJuMP to setup the 1st stage as the trade-off and the second stage as the conventional DCOPF
 ##############################################################################################################
-    model = BilevelModel(
-        Gurobi.Optimizer,
-        mode = BilevelJuMP.ProductMode()#FortunyAmatMcCarlMode(primal_big_M = 100, dual_big_M = 100)
-    )
+model = BilevelModel(
+    Gurobi.Optimizer,
+    mode = BilevelJuMP.ProductMode()#FortunyAmatMcCarlMode(primal_big_M = 100, dual_big_M = 100)
+)
+#try to use the SOC ACOPF formulation in Powr MOdels
  ##############################################################################################################
 # Define the upper level problems
 @variable(Upper(model), line_status[1:length(data["branch"])], Bin) 
@@ -218,7 +219,13 @@ for (i,branch) in ref[:branch]
 
 
     # AC Power Flow Constraints
-
+#####
+# go through each constraint and add each one to see where the problem is coming from
+# look to see at this error as a problem with regular JuMP not specifically with the BilevelJuMP library
+# dig through the source code to see what the error actually means
+# run SOC ACOPF to see if it will run
+# ask Sam to see if he has any ideas
+#####
     # From side of the branch flow
     @constraint(Lower(model), p_fr ==  (g+g_fr)/tm*vm_fr^2 + (-g*tr+b*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-b*tr-g*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
     @constraint(Lower(model), q_fr == -(b+b_fr)/tm*vm_fr^2 - (-b*tr-g*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-g*tr+b*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
