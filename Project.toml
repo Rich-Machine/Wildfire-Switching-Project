@@ -1,0 +1,5 @@
+[deps]
+Cbc = "9961bab8-2fa3-5c5a-9d89-47fab24efd76"
+JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
+JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
+PowerModelsWildfire = "01a8e460-0890-11ea-3f19-8b8faecc21cc"

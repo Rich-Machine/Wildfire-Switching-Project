@@ -37,10 +37,11 @@ for j in 1:length(alpha)
     pm_dc = instantiate_model(network_data, DCPPowerModel, PowerModels.build_opf)
     result_dc = optimize_model!(pm_dc, optimizer=Ipopt.Optimizer)
     load_shed_units = sum(network_data["load"]["$i"]["pd"] for i in 1:length(network_data["load"])) - sum(result["solution"]["gen"]["$i"]["pg"] for i in 1:length(network_data["gen"]))
-    push!(total_load_shed_ac, load_shed_units/D_p)
+    push!(total_load_shed_ac, (load_shed_units/D_p)*100)
+    display(total_load_shed_ac)
     
     load_shed_units_dc = sum(network_data["load"]["$i"]["pd"] for i in 1:length(network_data["load"])) - sum(result_dc["solution"]["gen"]["$i"]["pg"] for i in 1:length(network_data["gen"]))
-    push!(total_load_shed_dc, load_shed_units_dc/D_p)
+    push!(total_load_shed_dc, (load_shed_units_dc/D_p)*100)
 
     push!(total_load_shed_nn_ac, nn_opt_results["load_shed_units"][j][1])
 
@@ -48,9 +49,9 @@ for j in 1:length(alpha)
     # println(result_dc["solution"]["gen"])
     println("Load Shed NN_AC: $total_load_shed_nn_ac")
 end
-
+display(total_load_shed_ac)
 
 #plot wildfire risk vs load shed
 risk = nn_opt_results["wildfire_risk"]
-plot([total_load_shed_ac,total_load_shed_dc,total_load_shed_nn_ac],risk, label=["ACOPF" " DCOPF" "NN_ACOPF"], ylabel="Wildfire Risk", xlabel="% Load Shed", title="Wildfire Risk vs Load Shed for $network_type", legend=:topright)
+plot([total_load_shed_ac, total_load_shed_dc, total_load_shed_nn_ac],risk, label=["ACOPF" " DCOPF" "NN_ACOPF"], ylabel="Percentage of wildfire risk", xlabel="Percentage of Load Shed", title="Wildfire Risk vs Load Shed for High Risk", legend=:topright)
 savefig("benchmark_results/nn_acopf_ac_dc_opf_risk_vs_load_shed_$network_type.png")
