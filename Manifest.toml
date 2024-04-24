@@ -2,7 +2,7 @@
 
 julia_version = "1.9.3"
 manifest_format = "2.0"
-project_hash = "091855b10ab64e34b52ff33fa4996fd9f56a9503"
+project_hash = "5188c1f82d6b9d6416eea62a3b98642f8978a743"
 
 [[deps.ASL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -59,6 +59,12 @@ deps = ["JSON", "Logging", "Printf", "Profile", "Statistics", "UUIDs"]
 git-tree-sha1 = "f1dff6729bc61f4d49e140da1af55dcd1ac97b2f"
 uuid = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 version = "1.5.0"
+
+[[deps.BilevelJuMP]]
+deps = ["Dualization", "JuMP", "LinearAlgebra", "MathOptInterface", "Reexport"]
+git-tree-sha1 = "814c5a36fa219921609644f96cfd75b1226b0ce3"
+uuid = "485130c0-026e-11ea-0f1a-6992cd14145c"
+version = "0.6.2"
 
 [[deps.Bzip2_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -193,6 +199,12 @@ version = "0.9.3"
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 version = "1.6.0"
+
+[[deps.Dualization]]
+deps = ["JuMP", "LinearAlgebra", "MathOptInterface"]
+git-tree-sha1 = "4f24df471f3024a0facb94d2c2e1f362e9ce4eef"
+uuid = "191a621a-6537-11e9-281d-650236a99e60"
+version = "0.5.8"
 
 [[deps.FileIO]]
 deps = ["Pkg", "Requires", "UUIDs"]
