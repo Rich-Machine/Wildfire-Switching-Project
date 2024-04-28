@@ -1,8 +1,10 @@
 using Ipopt, PowerModelsAnalytics, PowerModels, Distributions, BSON
 
-# network_type = "base_case"
+network_type = "base_case"
 # network_type = "sole_gen"
-network_type = "high_risk"
+# network_type = "high_risk"
+network_type = "case14"
+# network_type = "hawaii"
 
 # Load the test case.
 main_eng = PowerModels.parse_file("case5_risk_$network_type.m")
@@ -16,6 +18,9 @@ binary_set = [0, 1]
 
 # Generate all possible combinations
 combinations = collect(Iterators.product(binary_set, binary_set, binary_set, binary_set, binary_set, binary_set))
+if network_type == "case14"
+    combinations = collect(Iterators.product(binary_set, binary_set, binary_set, binary_set, binary_set, binary_set, binary_set, binary_set, binary_set, binary_set,binary_set, binary_set, binary_set, binary_set, binary_set,binary_set, binary_set, binary_set, binary_set, binary_set))
+end
 
 # Define the dictionary to which all the values will be assigned.
 all_data = Dict("load_shed" => [])
@@ -28,7 +33,7 @@ for i in keys_of_lines
 end
 
 # Define the number of samples for each configiration. 
-num_cases = 100                                    
+num_cases = 1                                 
 
 # Begin variation in configurations and loads.
 for c in combinations
@@ -69,7 +74,7 @@ for c in combinations
         sum_load = sum(loads)
 
         # Begin solving the power flow
-        pm = instantiate_model(eng, ACPPowerModel, PowerModels.build_opf)
+        pm = instantiate_model(eng, DCPPowerModel, PowerModels.build_opf)
         result = optimize_model!(pm, optimizer=Ipopt.Optimizer)
 
         gen = []

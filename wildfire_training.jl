@@ -1,18 +1,20 @@
 # Import necessary libraries
 using Flux
 using BSON
+using Plots
 using Random
 using LinearAlgebra
 using Flux: mse, ADAM
+using Flux: params
 
-network_type = "RTS_GMLC_risk.m"
+# network_type = "RTS_GMLC_risk.m"
 #network_type = "edited"
-#network_type = "base_case"
-# network_type = "sole_gen"
+# network_type = "base_case"
+network_type = "sole_gen"
 # network_type = "high_risk"
 
 ## Load the training data
-training_data = BSON.load("wildfire_training_data_rts_gmlc.bson")
+training_data = BSON.load("wildfire_training_data_$network_type.bson")
 global keys_of_dictionary = keys(training_data)
 global input_data = []
 global target_data = []
@@ -63,11 +65,20 @@ model = Chain(
 )
 
 # Hyperparameters
-epochs = 2000
+epochs = 5000
 learning_rate = 0.001
 patience = 20  # Number of epochs to wait before early stopping if no improvement
 
-# Train the neural network
+# Define the loss function with L2 regularization
+function loss_with_regularization(x, y)
+    loss_val = Flux.mae(model(x), y)
+    λ = 0.1  # Regularization parameter, adjust as needed
+    reg_term = sum(norm(p)^2 for p in params(model))  # L2 regularization term
+    return loss_val + λ * reg_term
+end
+
+# Train the neural network with L2 regularization
+# loss(x, y) = loss_with_regularization(x, y)
 loss(x, y) = Flux.mae(model(x), y)
 opt = ADAM(learning_rate)
 data = [(x_train, y_train)]
@@ -76,6 +87,9 @@ global best_loss = Inf
 global wait = 0
 Epoch = []
 Loss = []
+
+# Record starting time
+start_time = time()
 
 for epoch in 1:epochs
     Flux.train!(loss, Flux.params(model), data, opt)
@@ -96,6 +110,10 @@ for epoch in 1:epochs
         end
     end
 end
+
+# Calculate training time
+training_time = time() - start_time
+println("Training time: $training_time seconds")
 
 predictions = model(x_test)
 errors = predictions - y_test
