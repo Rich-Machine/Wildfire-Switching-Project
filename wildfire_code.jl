@@ -74,7 +74,7 @@ for c in combinations
         sum_load = sum(loads)
 
         # Begin solving the power flow
-        pm = instantiate_model(eng, DCPPowerModel, PowerModels.build_opf)
+        pm = instantiate_model(eng, DCPPowerModel, PowerModels.build_opf) ###Change this AC
         result = optimize_model!(pm, optimizer=Ipopt.Optimizer)
 
         gen = []
